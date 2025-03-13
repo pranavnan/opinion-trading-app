@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "devts": "ts-node-dev src/index.ts",
     "dev": "npm run build && nodemon dist/index.js",
     "test": "jest --watchAll --no-cache",
     "test:ci": "jest"
