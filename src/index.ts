@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 // Start HTTP server
 const httpServer = app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}...`);
   mongoose
     .connect(
       process.env.MONGODB_URI || 'mongodb://localhost:27017/opinion-trading'
