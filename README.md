@@ -33,7 +33,7 @@ A backend system for an opinion trading platform, built with Node.js, TypeScript
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/opinion-trading.git
+git clone https://github.com/pranavnan/opinion-trading-app.git
 cd opinion-trading
 ```
 
@@ -125,3 +125,14 @@ Run tests using:
 ```bash
 npm test
 ```
+
+## CI/CD Pipeline
+
+The project includes a CI/CD pipeline implemented with GitHub Actions:
+
+- **Automated Testing:** Runs all tests automatically on pull requests
+- **Continuous Deployment:** Automatically builds and deploys Docker images to Docker Hub when code is pushed to the main branch
+
+The workflow files are located in the `.github/workflows` directory:
+- `tests.yml` - Handles automated testing on pull requests
+- `deploy.yml` - Handles Docker image building and deployment on pushes to main branch
