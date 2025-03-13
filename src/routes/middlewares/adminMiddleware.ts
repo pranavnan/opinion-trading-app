@@ -16,4 +16,4 @@ export const adminMiddleware = (req: Request, res: Response, next: NextFunction)
   } catch {
     return res.status(500).json({ message: 'Internal server error' });
   }
-}; 
+};
