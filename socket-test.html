@@ -111,7 +111,7 @@
           addMessage('Attempting to connect...', 'info');
 
           // Create socket connection with explicit transports config
-          socket = io('http://localhost:3000', {
+          socket = io('http://localhost:3001', {
             transports: ['websocket', 'polling'],
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
