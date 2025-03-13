@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.io Connection Test</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      button {
+        margin: 5px;
+        padding: 8px 15px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+
+      input {
+        padding: 8px;
+        margin: 5px;
+        width: 200px;
+      }
+
+      #status {
+        font-weight: bold;
+        margin: 10px 0;
+      }
+
+      #messages {
+        border: 1px solid #ddd;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        margin-top: 10px;
+      }
+
+      .message {
+        margin: 5px 0;
+        padding: 5px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .success {
+        color: green;
+      }
+
+      .error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Socket.io Connection Test</h1>
+
+    <div id="status">Status: Disconnected</div>
+
+    <div>
+      <button id="connect">Connect</button>
+      <button id="disconnect" disabled>Disconnect</button>
+    </div>
+
+    <div>
+      <input
+        id="roomInput"
+        placeholder="Room name (e.g. 'events')"
+        value="events"
+      />
+      <button id="joinRoom">Join Room</button>
+      <button id="leaveRoom">Leave Room</button>
+    </div>
+
+    <h3>Messages</h3>
+    <div id="messages"></div>
+
+    <script>
+      let socket;
+      let currentRoom;
+
+      // DOM elements
+      const statusEl = document.getElementById('status');
+      const messagesEl = document.getElementById('messages');
+      const connectBtn = document.getElementById('connect');
+      const disconnectBtn = document.getElementById('disconnect');
+      const roomInput = document.getElementById('roomInput');
+      const joinRoomBtn = document.getElementById('joinRoom');
+      const leaveRoomBtn = document.getElementById('leaveRoom');
+
+      // Add message to the messages div
+      function addMessage(message, type = 'info') {
+        const msgEl = document.createElement('div');
+        msgEl.className = `message ${type}`;
+        msgEl.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        messagesEl.appendChild(msgEl);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      // Connect button click handler
+      connectBtn.addEventListener('click', () => {
+        try {
+          addMessage('Attempting to connect...', 'info');
+
+          // Create socket connection with explicit transports config
+          socket = io('http://localhost:3000', {
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+          });
+
+          // Connection event handlers
+          socket.on('connect', () => {
+            statusEl.textContent = `Status: Connected (ID: ${socket.id})`;
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            addMessage(`Connected with ID: ${socket.id}`, 'success');
+          });
+
+          socket.on('connect_error', (error) => {
+            addMessage(`Connection error: ${error.message}`, 'error');
+          });
+
+          socket.on('disconnect', (reason) => {
+            statusEl.textContent = 'Status: Disconnected';
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            addMessage(`Disconnected: ${reason}`, 'error');
+          });
+
+          // Event listeners
+          socket.on('event_created', (data) => {
+            addMessage(`Event created: ${JSON.stringify(data)}`, 'success');
+          });
+
+          socket.on('event_updated', (data) => {
+            addMessage(`Event updated: ${JSON.stringify(data)}`, 'success');
+          });
+
+          socket.on('event_deleted', (data) => {
+            addMessage(`Event deleted: ${JSON.stringify(data)}`, 'success');
+          });
+
+          socket.on('join_room', (roomName) => {
+            addMessage(`Server requested to join room: ${roomName}`, 'info');
+            socket.emit('join_room', roomName);
+          });
+        } catch (error) {
+          addMessage(`Error creating socket: ${error.message}`, 'error');
+        }
+      });
+
+      // Disconnect button click handler
+      disconnectBtn.addEventListener('click', () => {
+        if (socket) {
+          socket.disconnect();
+          addMessage('Manually disconnected', 'info');
+        }
+      });
+
+      // Join room button click handler
+      joinRoomBtn.addEventListener('click', () => {
+        if (!socket || !socket.connected) {
+          addMessage('Not connected! Connect first.', 'error');
+          return;
+        }
+
+        const roomName = roomInput.value.trim();
+        if (!roomName) {
+          addMessage('Please enter a room name', 'error');
+          return;
+        }
+
+        socket.emit('join_room', roomName);
+        currentRoom = roomName;
+        addMessage(`Joined room: ${roomName}`, 'success');
+      });
+
+      // Leave room button click handler
+      leaveRoomBtn.addEventListener('click', () => {
+        if (!socket || !socket.connected) {
+          addMessage('Not connected! Connect first.', 'error');
+          return;
+        }
+
+        const roomName = roomInput.value.trim();
+        if (!roomName) {
+          addMessage('Please enter a room name', 'error');
+          return;
+        }
+
+        socket.emit('leave_room', roomName);
+        if (currentRoom === roomName) {
+          currentRoom = null;
+        }
+        addMessage(`Left room: ${roomName}`, 'success');
+      });
+    </script>
+  </body>
+</html>
